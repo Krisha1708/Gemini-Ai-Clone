@@ -1,23 +1,29 @@
 import React, { useContext, useRef, useState } from "react";
 import "./Main.css";
 import { Context } from "../../context/Context";
+import Login from "../Login/Login";
+import Signup from "../Signup/Signup";
 
 const Main = () => {
   const {
     onSent,
     recentPrompt,
     showResults,
-    setShowResults, // Add function to update showResults state
+    setShowResults,
     loading,
     resultData,
     setInput,
     input,
-    handleVoiceInput, // Get voice input function
-    isListening, // Get listening status
+    handleVoiceInput,
+    isListening,
   } = useContext(Context);
 
   const micRef = useRef(null);
-  const [querySent, setQuerySent] = useState(false); // Track if a query is sent
+  const [querySent, setQuerySent] = useState(false);
+  const [currentPage, setCurrentPage] = useState("main"); // Track current page
+  const [loggedInUser, setLoggedInUser] = useState(
+    localStorage.getItem("isLoggedIn") === "true"
+  );
 
   // Toggle microphone active state
   const toggleMic = () => {
@@ -32,17 +38,74 @@ const Main = () => {
   // Handle sending the query
   const handleSend = () => {
     onSent();
-    setQuerySent(true); // Mark query as sent to show pause button
+    setQuerySent(true);
   };
 
   // Function to pause the current result view and reset for a new chat
   const handlePause = () => {
-    console.log("Pause button clicked");
-    setShowResults(false); // Hide the results
-    setInput(""); // Clear the input field
-    setQuerySent(false); // Reset query sent status to show Send button again
-    console.log("Results hidden, input cleared, querySent reset");
+    setShowResults(false);
+    setInput("");
+    setQuerySent(false);
   };
+
+  // Handle navigation to Login page
+  const handleNavClick = () => {
+    setCurrentPage("login");
+  };
+
+  // Handle successful login
+  const handleLoginSuccess = (userName) => {
+    setLoggedInUser(true);
+    localStorage.setItem("isLoggedIn", "true");
+    localStorage.setItem("name", userName);
+    setCurrentPage("main");
+  };
+
+  // Handle navigation to Signup page
+  const handleSignupClick = () => {
+    setCurrentPage("signup");
+  };
+
+  // Handle successful signup
+  const handleSignupSuccess = () => {
+    setCurrentPage("login");
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    setLoggedInUser(false);
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("name");
+    setCurrentPage("login");
+  };
+
+  if (currentPage === "login") {
+    return (
+      <Login
+        onSignup={handleSignupClick}
+        onLoginSuccess={handleLoginSuccess}
+        navBar={
+          <div className="nav">
+            <p>Gemini</p>
+          </div>
+        }
+      />
+    );
+  }
+
+  if (currentPage === "signup") {
+    return (
+      <Signup
+        onSignupSuccess={handleSignupSuccess}
+        onBackToLogin={() => setCurrentPage("login")}
+        navBar={
+          <div className="nav">
+            <p>Gemini</p>
+          </div>
+        }
+      />
+    );
+  }
 
   return (
     <div className="main">
@@ -51,14 +114,20 @@ const Main = () => {
         <img
           src="https://img.freepik.com/free-psd/3d-illustration-human-avatar-profile_23-2150671142.jpg"
           alt=""
+          onClick={handleNavClick} // Navigate to Login page
         />
+        {loggedInUser && (
+          <button onClick={handleLogout} style={{ marginLeft: "auto" }}>
+            Logout
+          </button>
+        )}
       </div>
       <div className="main-container">
         {!showResults ? (
           <>
             <div className="greet">
               <p>
-                <span>Hello, Dev.</span>
+                <span>Hello, {localStorage.getItem("name") || "Dev"}.</span>
               </p>
               <p>How can I help you today?</p>
             </div>
@@ -138,19 +207,19 @@ const Main = () => {
                 src="https://www.iconpacks.net/icons/1/free-microphone-icon-342-thumb.png"
                 alt="mic"
                 className="mic-button"
-                onClick={toggleMic} // Attach microphone event
+                onClick={toggleMic}
               />
-              {querySent ? ( // If query is sent, show Pause button
+              {querySent ? (
                 <img
                   src="https://cdn-icons-png.flaticon.com/512/61/61180.png"
                   alt="pause"
-                  onClick={handlePause} // Pause functionality
+                  onClick={handlePause}
                 />
               ) : (
                 <img
                   src="https://icons.veryicon.com/png/o/miscellaneous/utility/send-26.png"
                   alt="send"
-                  onClick={handleSend} // Send functionality
+                  onClick={handleSend}
                 />
               )}
             </div>
