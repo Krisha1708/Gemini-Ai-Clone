@@ -37,9 +37,19 @@ const Main = () => {
 
   // Handle sending the query
   const handleSend = () => {
+    if (input.trim() === "") return; // Prevent sending empty queries
     onSent();
     setQuerySent(true);
+    localStorage.setItem("lastQuery", input); // Store the last query in localStorage
+    setInput(""); // Clear the input field after sending
   };
+
+  // Handle "Enter" key press in the input field
+const handleKeyPress = (e) => {
+  if (e.key === "Enter") {
+    handleSend();
+  }
+};
 
   // Function to pause the current result view and reset for a new chat
   const handlePause = () => {
@@ -196,6 +206,7 @@ const Main = () => {
               placeholder="Enter a prompt here "
               onChange={(e) => setInput(e.target.value)}
               value={input}
+              onKeyPress={handleKeyPress} // Handle "Enter" key press
             />
             <div>
               <img
